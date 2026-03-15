@@ -1,0 +1,147 @@
+// Prisma schema for CloudGuard MVP
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id           String         @id @default(uuid())
+  name         String
+  slug         String         @unique
+  plan         String         @default("free")
+  settings     Json           @default("{}")
+  createdAt    DateTime       @default(now())
+  users        User[]
+  accounts     CloudAccount[]
+  scanProfiles ScanProfile[]
+  auditLogs    AuditLog[]
+}
+
+model User {
+  id           String       @id @default(uuid())
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id])
+  email        String       @unique
+  name         String
+  passwordHash String
+  role         String       @default("MEMBER") // OWNER, ADMIN, MEMBER, VIEWER
+  mfaEnabled   Boolean      @default(false)
+  lastLogin    DateTime?
+  createdAt    DateTime     @default(now())
+  auditLogs    AuditLog[]
+}
+
+model CloudAccount {
+  id            String       @id @default(uuid())
+  orgId         String
+  org           Organization @relation(fields: [orgId], references: [id])
+  provider      String       // AWS, GCP, AZURE, DIGITALOCEAN
+  alias         String
+  accountId     String       // AWS account ID, GCP project, etc.
+  credentialRef String       // Vault/KMS path (NEVER plaintext)
+  status        String       @default("CONNECTED") // CONNECTED, INVALID, REVOKED
+  metadata      Json         @default("{}")
+  validatedAt   DateTime?
+  scanJobs      ScanJob[]
+}
+
+model ScanProfile {
+  id          String       @id @default(uuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id])
+  name        String
+  provider    String
+  checkIds    String[]
+  preset      String       @default("CUSTOM")
+  filters     Json         @default("{}")
+  scanJobs    ScanJob[]
+}
+
+model ScanJob {
+  id              String       @id @default(uuid())
+  orgId           String
+  cloudAccountId  String
+  cloudAccount    CloudAccount @relation(fields: [cloudAccountId], references: [id])
+  profileId       String?
+  profile         ScanProfile? @relation(fields: [profileId], references: [id])
+  status          String       @default("QUEUED") // QUEUED, RUNNING, COMPLETED, FAILED
+  checkIds        String[]
+  totalChecks     Int          @default(0)
+  completedChecks Int          @default(0)
+  findingsCount   Int          @default(0)
+  score           Float?
+  metadata        Json         @default("{}")
+  startedAt       DateTime?
+  completedAt     DateTime?
+  findings        Finding[]
+}
+
+model Finding {
+  id               String              @id @default(uuid())
+  scanJobId        String
+  scanJob          ScanJob             @relation(fields: [scanJobId], references: [id], onDelete: Cascade)
+  checkId          String
+  provider         String
+  service          String
+  severity         String              // CRITICAL, HIGH, MEDIUM, LOW, INFO
+  title            String
+  resourceArn      String
+  resourceType     String
+  region           String?
+  status           String              @default("OPEN") // OPEN, RESOLVED, SUPPRESSED
+  riskSummary      String
+  evidence         Json
+  rawData          Json?
+  detectedAt       DateTime            @default(now())
+  aiExplanations   AIExplanation[]
+  remediations     RemediationAction[]
+}
+
+model AIExplanation {
+  id                   String   @id @default(uuid())
+  findingId            String
+  finding              Finding  @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  simpleExplanation    String   @db.Text
+  technicalExplanation String   @db.Text
+  businessImpact       String   @db.Text
+  fixRecommendation    String   @db.Text
+  attackScenario       String?  @db.Text
+  llmProvider          String
+  tokenCount           Int
+  generatedAt          DateTime @default(now())
+}
+
+model RemediationAction {
+  id              String    @id @default(uuid())
+  findingId       String
+  finding         Finding   @relation(fields: [findingId], references: [id], onDelete: Cascade)
+  initiatedBy     String    // User ID
+  type            String    // MANUAL, AUTOMATED, DRY_RUN
+  status          String    @default("PENDING") // PENDING, APPROVED, EXECUTING, COMPLETED, FAILED
+  plannedChanges  Json
+  executionResult Json?
+  rollbackData    Json?
+  userApproved    Boolean   @default(false)
+  approvedAt      DateTime?
+  executedAt      DateTime?
+}
+
+model AuditLog {
+  id           String       @id @default(uuid())
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id])
+  userId       String?
+  user         User?        @relation(fields: [userId], references: [id])
+  action       String
+  resourceType String
+  resourceId   String
+  details      Json
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime     @default(now())
+}

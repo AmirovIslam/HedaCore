@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-  # ── PostgreSQL ──────────────────────────────────────
   postgres:
     image: postgres:16-alpine
+    container_name: cloudguard-db
     environment:
       POSTGRES_USER: cloudguard
       POSTGRES_PASSWORD: cloudguard
@@ -18,9 +18,9 @@ services:
       timeout: 3s
       retries: 5
 
-  # ── Redis ───────────────────────────────────────────
   redis:
     image: redis:7-alpine
+    container_name: cloudguard-redis
     ports:
       - "6379:6379"
     healthcheck:
@@ -29,7 +29,6 @@ services:
       timeout: 3s
       retries: 5
 
-  # ── FastAPI Backend ─────────────────────────────────
   backend:
     build:
       context: .
@@ -51,7 +50,6 @@ services:
     volumes:
       - ./backend:/app
 
-  # ── Celery Worker ───────────────────────────────────
   celery-worker:
     build:
       context: .
@@ -72,7 +70,6 @@ services:
     volumes:
       - ./backend:/app
 
-  # ── React Frontend ─────────────────────────────────
   frontend:
     build:
       context: .

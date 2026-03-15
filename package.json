@@ -1,0 +1,50 @@
+{
+  "name": "cloudguard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ec2": "^3.1009.0",
+    "@aws-sdk/client-iam": "^3.1009.0",
+    "@aws-sdk/client-s3": "^3.1009.0",
+    "@aws-sdk/client-sts": "^3.1009.0",
+    "@azure/arm-resources": "^7.0.0",
+    "@azure/identity": "^4.13.0",
+    "@google-cloud/compute": "^6.8.0",
+    "@google-cloud/resource-manager": "^6.2.1",
+    "@google-cloud/storage": "^7.19.0",
+    "@prisma/client": "5.22.0",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-devtools": "^5.91.3",
+    "@trpc/client": "^11.12.1",
+    "@trpc/next": "^11.12.1",
+    "@trpc/react-query": "^11.12.1",
+    "@trpc/server": "^11.12.1",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.400.0",
+    "next": "^14.2.0",
+    "prisma": "5.22.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "recharts": "^2.12.0",
+    "superjson": "^2.2.6",
+    "tailwind-merge": "^2.3.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.2.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.4.0"
+  }
+}
