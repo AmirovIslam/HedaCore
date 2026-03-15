@@ -20,6 +20,7 @@ model Organization {
   accounts     CloudAccount[]
   scanProfiles ScanProfile[]
   auditLogs    AuditLog[]
+  complianceFrameworks ComplianceFramework[]
 }
 
 model User {
@@ -100,6 +101,34 @@ model Finding {
   detectedAt       DateTime            @default(now())
   aiExplanations   AIExplanation[]
   remediations     RemediationAction[]
+
+  @@index([status])
+  @@index([checkId])
+  @@index([scanJobId])
+}
+
+model ComplianceFramework {
+  id          String              @id @default(uuid())
+  orgId       String
+  org         Organization        @relation(fields: [orgId], references: [id])
+  name        String
+  description String?
+  isBuiltIn   Boolean             @default(false) // For ISO, NIST
+  controls    ComplianceControl[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model ComplianceControl {
+  id          String              @id @default(uuid())
+  frameworkId String
+  framework   ComplianceFramework @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+  controlId   String              // e.g., AC-1, A.8.1
+  title       String
+  description String?
+  checkIds    String[]            // Mapped security checks
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 }
 
 model AIExplanation {
